@@ -163,42 +163,9 @@ class Product {
       })
   }
 
-  // Validation fucntion for adding and update
-  async validation(mangaObj) {
-    const { name, price, stock, author } = mangaObj
-    const errors = {}
-    if (!name || name === "") {
-      errors.name = "Name is not provided"
-    }
-    if (!price || price === "" || price > 1000) {
-      errors.price =
-        "Price should be provided, and it should be less than 1000."
-    }
-    if (!stock || stock === "" || stock === 0) {
-      errors.stock =
-        "Stock should be provided, and it should be greater than 0."
-    }
-    if (!author || author === "" || author === "Unknown") {
-      errors.author =
-        "Author name should be provided, and it should not be unknown."
-    }
-    if (Object.keys(errors).length > 0) {
-      return { success: false, errors: errors }
-    }
-  }
-
   // Update one by id
   async updateOneById(id, updatedManga) {
     // Reading the file
-    const addValidation = await this.validation(updatedManga)
-    console.log(addValidation)
-    if (
-      addValidation &&
-      addValidation.success === false &&
-      addValidation.errors
-    ) {
-      return { success: false, message: addValidation.errors } // Return the validation errors if they exist
-    }
     const data = await fsPromise.readFile(
       path.join(__dirname, "..", "data", "manga.json"),
       {
@@ -232,15 +199,6 @@ class Product {
   //add to the json file
   async add(body) {
     try {
-      const addValidation = await this.validation(body)
-      console.log(addValidation)
-      if (
-        addValidation &&
-        addValidation.success === false &&
-        addValidation.errors
-      ) {
-        return { success: false, message: addValidation.errors } // Return the validation errors if they exist
-      }
       // Read the file
       const data = await fsPromise.readFile(
         path.join(__dirname, "..", "data", "manga.json"),
