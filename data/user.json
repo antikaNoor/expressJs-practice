@@ -1,0 +1,1 @@
+[{"userId":1,"name":"user1","email":"user1@gmail.com","bought_manga":[40],"total_purchase":12.99},{"userId":2,"name":"user2","email":"user2@gmail.com","bought_manga":[40,30,39,39],"total_purchase":43.96},{"userId":3,"name":"user3","email":"user3@gmail.com"}]
