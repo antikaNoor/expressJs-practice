@@ -3,6 +3,7 @@ const { success, failure } = require('../utils/success-error')
 const express = require('express')
 const { validationResult } = require('express-validator')
 const HTTP_STATUS = require("../constants/statusCode");
+const bcrypt = require("bcrypt")
 
 class readerController {
 
@@ -24,12 +25,18 @@ class readerController {
     //add data
     async add(req, res) {
         try {
-            const { reader_name, reader_email, read } = req.body
+            const { reader_name, reader_email, password } = req.body
             console.log(reader_name)
             console.log(reader_email)
-            console.log(read)
+            // console.log(read)
 
-            const reader = new readerModel({ reader_name, reader_email, read })
+            const hashedPassAdmin = await bcrypt.hash(password, 10)
+            const adminInfo = {
+                reader_name: req.body.reader_name,
+                reader_email: req.body.reader_email,
+                password: hashedPassAdmin
+            }
+            const reader = new readerModel(adminInfo)
             console.log(reader)
             await reader.save()
 

@@ -15,7 +15,7 @@ routes.put("/mongoupbyid/:id", createValidation.create, readerController.create,
 routes.post("/add-book", bookController.add)
 routes.get("/get-all-books", bookController.getAll)
 
-routes.post("/add-reader", readerController.add)
+routes.post("/add-reader", createValidation.create, readerController.create, readerController.add)
 
 routes.post("/add-transaction", transactionController.add)
 routes.get("/get-transaction", transactionController.getAll)

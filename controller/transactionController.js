@@ -31,12 +31,38 @@ class transactionController {
         try {
             const { reader, bought_books } = req.body
 
-            console.log(reader)
-            console.log(bought_books)
+            // console.log(reader)
+            // console.log(bought_books)
             let totalSpent = 0
+            let updateQuantity = 0
             // const updatedBooks = []
             let existingTransaction = await transactionModel.findOne({ reader });
-            console.log(existingTransaction)
+
+            // console.log(existingTransaction)
+            if (existingTransaction) {
+                const existingBookEntry = existingTransaction.bought_books.filter(
+                    (entry) => entry.id === req.body.bought_books.id
+                );
+                console.log(existingBookEntry.length > 0)
+                if (existingBookEntry) {
+                    //increase quantity
+                    console.log("increase")
+
+                    // updateQuantity++
+                    existingBookEntry.quantity++
+                    await existingTransaction.save();
+                }
+                else {
+                    console.log("enter book")
+                    existingTransaction.bought_books.push({ bought_books })
+                    await existingTransaction.save();
+                }
+
+            }
+            else {
+                const transaction = new transactionModel({ reader, bought_books })
+                await transaction.save()
+            }
             // for (const book of bought_books) {
             //     const bookData = await bookModel.findById(book.id)
             //     if (!bookData) {
@@ -46,9 +72,9 @@ class transactionController {
             //     console.log(bookData)
             // }
 
-            const transaction = new transactionModel({ reader, bought_books })
+            // const transaction = new transactionModel({ reader, bought_books })
             // console.log(transaction)
-            await transaction.save()
+            // await transaction.save()
 
             return res.status(200).send(success("Successfully added the transaction"))
         } catch (error) {
@@ -63,7 +89,7 @@ class transactionController {
             // console.log(req.name)
             const result = await transactionModel.find({})
                 .populate("reader")
-                .populate("bought_books.id")
+                .populate("bought_books.id", "-password")
             console.log(result)
             if (result.length > 0) {
                 return res

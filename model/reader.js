@@ -6,7 +6,7 @@ const readerSchema = new mongoose.Schema({
     reader_name: {
         type: String,
         required: [true, "Usrename should be provided"],
-        unique: true,
+        // unique: true,
         maxLength: 30
     },
     reader_email: {
@@ -14,10 +14,10 @@ const readerSchema = new mongoose.Schema({
         required: [true, "Email should be provided"],
         unique: true
     },
-    // password: {
-    //     type: String,
-    //     required: true,
-    // },
+    password: {
+        type: String,
+        required: [true, "Password should be provided"],
+    },
     status: {
         type: Boolean,
         required: false,

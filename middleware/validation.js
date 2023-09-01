@@ -14,7 +14,7 @@ const validator = {
 
         body("reader_email")
             .isString()
-            .withMessage("email must be a string."),
+            .withMessage("email must be a string.")
 
         // body("price")
         //     .exists()

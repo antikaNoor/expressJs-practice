@@ -19,7 +19,7 @@ const mongoose = require("mongoose")
 const transactionSchema = new mongoose.Schema({
     reader: {
         type: mongoose.Types.ObjectId,
-        required: [true, "Reader name should be provided"],
+        // required: [true, "Reader name should be provided"],
         ref: "Reader",
         // unique: true,
     },
