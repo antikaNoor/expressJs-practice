@@ -1,17 +1,7 @@
 const mongoose = require("mongoose")
+const jwt = require('jsonwebtoken');
+const bcrypt = require('bcrypt');
 
-const readSchema = new mongoose.Schema({
-    book_name: {
-        type: String,
-        required: false,
-        default: "Unknown"
-    },
-    date: {
-        type: Date,
-        required: false,
-        default: new Date()
-    }
-})
 const readerSchema = new mongoose.Schema({
     reader_name: {
         type: String,
@@ -24,28 +14,32 @@ const readerSchema = new mongoose.Schema({
         required: [true, "Email should be provided"],
         unique: true
     },
-    read: {
-        type: [readSchema]
+    // password: {
+    //     type: String,
+    //     required: true,
+    // },
+    status: {
+        type: Boolean,
+        required: false,
+        default: false
     }
-    // rank: {
-    //     type: Number,
-    //     required: false,
-    //     default: 1,
-    //     min: 1,
-    //     max: 10
-    // },
-
-    // createdAt: {
-    //     type: Date,
-    //     required: false,
-    //     default: new Date()
-    // },
-    // status: {
-    //     type: Boolean,
-    //     required: false,
-    //     default: false
-    // }
 })
+
+// // Hash the password before saving
+// readerSchema.pre("save", async function(next) {
+//     if (!this.isModified("password")) return next();
+
+//     const saltRounds = 10;
+//     const hash = await bcrypt.hash(this.password, saltRounds);
+//     this.password = hash;
+
+//     next();
+// });
+
+// // Method to compare passwords
+// readerSchema.methods.comparePassword = async function(candidatePassword) {
+//     return await bcrypt.compare(candidatePassword, this.password);
+// };
 
 const Reader = mongoose.model("Reader", readerSchema);
 module.exports = Reader;
