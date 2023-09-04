@@ -31,14 +31,8 @@ class transactionController {
         try {
             const { reader, bought_books } = req.body
 
-            // console.log(reader)
-            // console.log(bought_books)
-            let totalSpent = 0
-            let updateQuantity = 0
-            // const updatedBooks = []
             let existingTransaction = await transactionModel.findOne({ reader });
 
-            // console.log(existingTransaction)
             if (existingTransaction) {
                 const existingBookEntry = existingTransaction.bought_books.filter(
                     (entry) => entry.id === req.body.bought_books.id

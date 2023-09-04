@@ -25,19 +25,19 @@ class readerController {
     //add data
     async add(req, res) {
         try {
-            const { reader_name, reader_email, password } = req.body
+            const { reader_name, reader_email } = req.body
             console.log(reader_name)
             console.log(reader_email)
             // console.log(read)
 
-            const hashedPassAdmin = await bcrypt.hash(password, 10)
-            const adminInfo = {
-                reader_name: req.body.reader_name,
-                reader_email: req.body.reader_email,
-                password: hashedPassAdmin
-            }
-            const reader = new readerModel(adminInfo)
-            console.log(reader)
+            // const hashedPassAdmin = await bcrypt.hash(password, 10)
+            // const adminInfo = {
+            //     reader_name: req.body.reader_name,
+            //     reader_email: req.body.reader_email,
+            //     password: hashedPassAdmin
+            // }
+            const reader = new readerModel({ reader_name, reader_email })
+            // console.log(reader)
             await reader.save()
 
             return res.status(200).send(success("Successfully added the reader"))

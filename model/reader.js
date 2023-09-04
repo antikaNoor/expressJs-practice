@@ -25,21 +25,5 @@ const readerSchema = new mongoose.Schema({
     }
 })
 
-// // Hash the password before saving
-// readerSchema.pre("save", async function(next) {
-//     if (!this.isModified("password")) return next();
-
-//     const saltRounds = 10;
-//     const hash = await bcrypt.hash(this.password, saltRounds);
-//     this.password = hash;
-
-//     next();
-// });
-
-// // Method to compare passwords
-// readerSchema.methods.comparePassword = async function(candidatePassword) {
-//     return await bcrypt.compare(candidatePassword, this.password);
-// };
-
 const Reader = mongoose.model("Reader", readerSchema);
 module.exports = Reader;
