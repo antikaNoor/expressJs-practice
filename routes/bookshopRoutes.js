@@ -11,6 +11,7 @@ const authController = require('../controller/authController')
 const Auth = require('../model/auth')
 
 routes.post("/signup", readerValidation.signup, AuthController.create, AuthController.signup)
+routes.post("/login", AuthController.login)
 
 routes.post("/add-book", bookController.add)
 routes.get("/get-all-books", bookController.getAll)

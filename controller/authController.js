@@ -1,10 +1,11 @@
-const auth = require('../model/auth')
+const authModel = require('../model/auth')
 const readerModel = require('../model/reader')
 const { success, failure } = require('../utils/success-error')
 const express = require('express')
 const { validationResult } = require('express-validator')
 const HTTP_STATUS = require("../constants/statusCode");
 const bcrypt = require("bcrypt")
+const { default: mongoose } = require('mongoose')
 
 class AuthController {
 
@@ -22,8 +23,25 @@ class AuthController {
             console.log("error has occured")
         }
     }
-    async login() {
+    async login(req, res) {
+        try {
+            const { reader_email, password } = req.body
+            const auth = await authModel.findOne({ reader_email }).populate("reader")
+            // console.log(auth)
+            if (!auth) {
+                return res.status(500).send(failure("Reader is not registered"))
+            }
+            const checkPassword = await bcrypt.compare(password, auth.password)
+            console.log(checkPassword)
 
+            if (!checkPassword) {
+                return res.status(500).send(failure("Authentication failed"))
+            }
+
+            return res.status(200).send(success("Login successful"))
+        } catch (error) {
+            return res.status(500).send(failure("Internal server error", error))
+        }
     }
 
     async signup(req, res) {
@@ -34,24 +52,24 @@ class AuthController {
                 return res.status(500).send(failure("Failed to add the user", validation))
             }
 
-            const { email, password, status } = req.body
+            const { reader_name, reader_email, password, status } = req.body
             const hashedPassword = await bcrypt.hash(password, 10).then((hash) => {
                 return hash
             })
 
-            const result = await auth.create({
-                email: email,
-                password: hashedPassword,
-                status: status
-                // reader: reader
+            const readerInfo = await readerModel.create({
+                reader_name: reader_name,
+                reader_email: reader_email,
+                status: status,
             })
-            // if (!result) {
-            //     const readerData = await readerModel.findOne({ reader })
-            //         .populate("status")
 
-            //     await readerModel.save()
-            //     // return res.status(500).send(failure("Failed to add the user"))
-            // }
+            const result = await authModel.create({
+                reader_email: reader_email,
+                password: hashedPassword,
+                reader: readerInfo._id
+            })
+
+            console.log(result)
             return res.status(200).send(success("Successfully added the user"))
         } catch (error) {
             console.log("Error")

@@ -14,21 +14,27 @@ const validator = {
 
         body("reader_email")
             .isString()
-            .withMessage("email must be a string."),
+            .withMessage("email must be a string.")
+            .bail()
+            .isEmail()
+            .withMessage("This is not a valid email id"),
     ],
     signup: [
         body("reader_email")
             .isString()
-            .withMessage("email must be a string."),
+            .withMessage("email must be a string.")
+            .bail()
+            .isEmail()
+            .withMessage("This is not a valid email id"),
 
         body("password")
             .custom((value, { req }) => {
                 if (value.length < 8) {
                     throw new Error("Password must be longer than 8 characters.")
                 }
-                const mail = req.body.reader_email.split('@')
-                if (value.toLowerCase().includes(mail)) {
-                    throw new Error("Password cannot contain parts of your email.")
+                const name = req.body.reader_name.toLowerCase()
+                if (value.toLowerCase().includes(name)) {
+                    throw new Error("Password cannot contain parts of your name.")
                 }
                 const checkCapitalLetter = /[A-Z]+/
                 const checkNumber = /[0-9]+/

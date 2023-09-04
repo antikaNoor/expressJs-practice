@@ -3,9 +3,14 @@ const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
 
 const authSchema = new mongoose.Schema({
+    reader_name: {
+        type: String,
+        // required: [true, "Name should be provided"],
+        unique: true
+    },
     reader_email: {
         type: String,
-        required: [true, "Email should be provided"],
+        // required: [true, "Email should be provided"],
         unique: true
     },
     password: {
@@ -17,11 +22,11 @@ const authSchema = new mongoose.Schema({
         required: false
         // default: false
     },
-    // reader: {
-    //     type: mongoose.Types.ObjectId,
-    //     ref: "Reader",
-    //     required: true
-    // }
+    reader: {
+        type: mongoose.Types.ObjectId,
+        ref: "Reader",
+        required: true
+    }
 })
 
 const Auth = mongoose.model("Auth", authSchema);
