@@ -5,6 +5,7 @@ const express = require('express')
 const { validationResult } = require('express-validator')
 const HTTP_STATUS = require("../constants/statusCode");
 const bcrypt = require("bcrypt")
+const jwt = require('jsonwebtoken')
 const { default: mongoose } = require('mongoose')
 
 class AuthController {
@@ -23,14 +24,30 @@ class AuthController {
             console.log("error has occured")
         }
     }
+
     async login(req, res) {
         try {
+
             const { reader_email, password } = req.body
             const auth = await authModel.findOne({ reader_email }).populate("reader")
-            // console.log(auth)
             if (!auth) {
                 return res.status(500).send(failure("Reader is not registered"))
             }
+
+            const currentTime = new Date()
+            const timeToLogin = new Date(auth.updatedAt.getTime() + 5 * 1000);
+            if (auth.loginAttempt >= 3) {
+                console.log("Too many failed login attempts. Try again in 5 seconds")
+                if (currentTime >= timeToLogin) {
+                    auth.loginAttempt = 0;
+                    await auth.save();
+                }
+                return res.status(401).send(failure(`Too many login attempts. Try again in seconds.`));
+            }
+            // if user tries to log in with wrong password, the loginAttempt property will increase 
+            auth.loginAttempt++
+            await auth.save()
+
             const checkPassword = await bcrypt.compare(password, auth.password)
             console.log(checkPassword)
 
@@ -38,8 +55,34 @@ class AuthController {
                 return res.status(500).send(failure("Authentication failed"))
             }
 
-            return res.status(200).send(success("Login successful"))
+            //If the password is right, the loginAttempt property will be 0
+            auth.loginAttempt = 0;
+            await auth.save();
+
+            const responseAuth = auth.toObject()
+            console.log(responseAuth)
+
+            delete responseAuth.password
+            delete responseAuth._id
+            delete responseAuth.reader._id
+            delete responseAuth.loginAttempt
+            delete responseAuth.createdAt
+            delete responseAuth.updatedAt
+
+            const generatedToken = jwt.sign(responseAuth, process.env.JWT_SECRET, {
+                expiresIn: "1h"
+            })
+
+            responseAuth.token = generatedToken
+
+            return res.status(200).send(success("Login successful", responseAuth))
         } catch (error) {
+            if (error instanceof jwt.JsonWebTokenError) {
+                return res.status(500).send(failure("Token is invalid", error))
+            }
+            if (error instanceof jwt.TokenExpiredError) {
+                return res.status(500).send(failure("Token is expired", error))
+            }
             return res.status(500).send(failure("Internal server error", error))
         }
     }

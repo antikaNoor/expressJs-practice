@@ -29,15 +29,15 @@ class bookController {
             console.log(author)
             console.log(genre)
             let existingBook = await bookModel.findOne({ title, author })
-            if(existingBook) {
+            if (existingBook) {
                 return res.status(500).send(failure("This book already exists!"))
             }
             else {
                 const book = new bookModel({ title, author, genre, pages, price, stock })
-            console.log(book)
-            await book.save()
+                console.log(book)
+                await book.save()
 
-            return res.status(200).send(success("Successfully added the book"))
+                return res.status(200).send(success("Successfully added the book"))
             }
         } catch (error) {
             console.error("Error while entering book:", error);
@@ -69,9 +69,28 @@ class bookController {
             const { id } = req.params; // Retrieve the id from req.params
             // console.log(id);
             const result = await bookModel.findById({ _id: id })
+            console.log(result)
+            if (result) {
+                res.status(200).send(success("Successfully received the book", result))
+            } else {
+                res.status(200).send(failure("Can't find the book"))
+            }
+
+        } catch (error) {
+            console.log("error found", error)
+            res.status(500).send(failure("Internal server error"))
+        }
+    }
+
+    //delete data by id
+    async deleteOneById(req, res) {
+        try {
+            const { id } = req.params; // Retrieve the id from req.params
+            console.log(id);
+            const result = await bookModel.findOneAndDelete({ _id: id })
             // console.log(result)
             if (result) {
-                res.status(200).send(success("Successfully received the reader", result))
+                res.status(200).send(success("Successfully deleted the reader", result))
             } else {
                 res.status(200).send(failure("Can't find the reader"))
             }
@@ -81,25 +100,6 @@ class bookController {
             res.status(500).send(failure("Internal server error"))
         }
     }
-
-    // //delete data by id
-    // async deleteOneById(req, res) {
-    //     try {
-    //         const { id } = req.params; // Retrieve the id from req.params
-    //         // console.log(id);
-    //         const result = await bookModel.findOneAndDelete({ _id: id })
-    //         // console.log(result)
-    //         if (result) {
-    //             res.status(200).send(success("Successfully deleted the reader", result))
-    //         } else {
-    //             res.status(200).send(failure("Can't find the reader"))
-    //         }
-
-    //     } catch (error) {
-    //         console.log("error found", error)
-    //         res.status(500).send(failure("Internal server error"))
-    //     }
-    // }
 
     // //updatedatabyid
     // async updateOneById(req, res) {

@@ -13,8 +13,12 @@ const readerSchema = new mongoose.Schema({
         type: String,
         required: [true, "Email should be provided"],
         unique: true
-    }
-})
+    },
+    status: {
+        type: Boolean
+    },
+
+}, { timestamps: true })
 
 const Reader = mongoose.model("Reader", readerSchema);
 module.exports = Reader;

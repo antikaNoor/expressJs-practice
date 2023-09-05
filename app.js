@@ -1,7 +1,5 @@
 const express = require('express')
 // const mangaRouter = require('./routes/mangaRoutes')
-const adminRouter = require('./routes/adminRoutes')
-const adminLoginRouter = require('./routes/adminLoginRoutes')
 const bookshopRouter = require('./routes/bookshopRoutes')
 const cors = require("cors")
 const databaseConnection = require('./config/database')
@@ -22,11 +20,7 @@ app.use((err, req, res, next) => {
   next()
 })
 
-app.use("/admin", adminRouter)
-app.use("/admin", adminLoginRouter)
-// app.use("/manga", mangaRouter)
 app.use("/shop", bookshopRouter)
-// app.use("/manga", mangaRouter)
 
 // using route() method to get the invalid routes
 app.route('*')

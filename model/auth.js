@@ -5,12 +5,10 @@ const bcrypt = require('bcrypt');
 const authSchema = new mongoose.Schema({
     reader_name: {
         type: String,
-        // required: [true, "Name should be provided"],
         unique: true
     },
     reader_email: {
         type: String,
-        // required: [true, "Email should be provided"],
         unique: true
     },
     password: {
@@ -19,15 +17,18 @@ const authSchema = new mongoose.Schema({
     },
     status: {
         type: Boolean,
-        required: false
-        // default: false
+    },
+    loginAttempt: {
+        type: Number,
+        default: 0
     },
     reader: {
         type: mongoose.Types.ObjectId,
         ref: "Reader",
         required: true
-    }
-})
+    },
+
+}, { timestamps: true })
 
 const Auth = mongoose.model("Auth", authSchema);
 module.exports = Auth;
