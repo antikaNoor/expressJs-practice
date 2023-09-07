@@ -2,7 +2,6 @@ const bookModel = require('../model/book')
 const { success, failure } = require('../utils/success-error')
 const express = require('express')
 const { validationResult } = require('express-validator')
-// const HTTP_STATUS = require("../constants/statusCode");
 
 class bookController {
 
@@ -48,8 +47,9 @@ class bookController {
     //get all data
     async getAll(req, res) {
         try {
-            let { page, limit, sort, min, max } = req.query
+            let { page, limit, sort, min, max, pages, price, stock, title, author, genre } = req.query
 
+            let result = 0
             // Total number of records in the whole collection
             const totalRecords = await bookModel.countDocuments({})
 
@@ -85,31 +85,59 @@ class bookController {
             if (min !== undefined) {
 
                 const partMin = min.split(":")
-                console.log(partMin[0].toString())
-                const valueMin = partMin[0].toString()
-                filterOptions.valueMin = { $gte: parseFloat(partMin[1]) }
-                console.log(filterOptions.valueMin)
+                filterOptions[partMin[0]] = { $gte: parseFloat(partMin[1]) }
             }
 
             if (max !== undefined) {
                 const partMax = max.split(":")
-                const valueMax = partMax[0].toString()
-                if (filterOptions.valueMax === undefined) {
-                    filterOptions.valueMax = { $lte: parseFloat(partMax[1]) }
+                if (filterOptions[partMax[0]] === undefined) {
+                    filterOptions[partMax[0]] = { $lte: parseFloat(partMax[1]) }
                     console.log("min price has not been provided")
                 }
                 else {
-                    filterOptions.valueMax.$lte = parseFloat(partMax[1])
+                    filterOptions[partMax[0]].$lte = parseFloat(partMax[1])
                     console.log("There is a min price there")
-                    console.log(filterOptions.valueMax)
                 }
             }
+            console.log(filterOptions)
 
+            // If no filter is provided
+            // if (Object.keys(filterOptions).length === 0) {
+            //     return res.status(500).send(failure("Filter option is not provided!"))
+            // }
             // Pagination
-            const result = await bookModel.find(filterOptions)
-                .sort(sortOptions)
-                .skip((page - 1) * limit)
-                .limit(limit)
+            if (Object.keys(filterOptions).length === 0) {
+                console.log("Doing only searching")
+                // Search
+                const searchQuery = {
+                    title: {
+                        $regex: title,
+                        $options: 'i'
+                    },
+                    author: {
+                        $regex: author,
+                        $options: 'i'
+                    },
+                    genre: {
+                        $regex: genre,
+                        $options: 'i'
+                    },
+                    price: price,
+                    stock: stock,
+                    pages: pages
+                }
+                result = await bookModel.find(searchQuery)
+                    .sort(sortOptions)
+                    .skip((page - 1) * limit)
+                    .limit(limit)
+            }
+            else {
+                console.log("Doing only filtering")
+                result = await bookModel.find(filterOptions)
+                    .sort(sortOptions)
+                    .skip((page - 1) * limit)
+                    .limit(limit)
+            }
 
             if (result.length > 0) {
                 const paginationResult = {
