@@ -48,7 +48,7 @@ class bookController {
     //get all data
     async getAll(req, res) {
         try {
-            let { page, limit, sort } = req.query
+            let { page, limit, sort, min, max } = req.query
 
             // Total number of records in the whole collection
             const totalRecords = await bookModel.countDocuments({})
@@ -61,6 +61,7 @@ class bookController {
                 return res.status(500).send(failure("Page must be at least 1 and limit must be at least 0"))
             }
 
+            // sorting
             const sortOptions = {}
             if (sort) {
                 console.log(sort)
@@ -69,15 +70,46 @@ class bookController {
                 const sortBy = part[0]
                 const sortOrder = part[1]
 
-                sortOptions[sortBy] = sortOrder === 'desc' ? -1 : 1
+                if (sortOrder === 'desc') {
+                    sortOptions[sortBy] = -1;
+                } else if (sortOrder === 'asc') {
+                    sortOptions[sortBy] = 1;
+                }
+                else {
+                    return res.status(500).send(failure("Please enter a valid order!"))
+                }
+            }
+
+            // Filtering
+            const filterOptions = {}
+            if (min !== undefined) {
+
+                const partMin = min.split(":")
+                console.log(partMin[0].toString())
+                const valueMin = partMin[0].toString()
+                filterOptions.valueMin = { $gte: parseFloat(partMin[1]) }
+                console.log(filterOptions.valueMin)
+            }
+
+            if (max !== undefined) {
+                const partMax = max.split(":")
+                const valueMax = partMax[0].toString()
+                if (filterOptions.valueMax === undefined) {
+                    filterOptions.valueMax = { $lte: parseFloat(partMax[1]) }
+                    console.log("min price has not been provided")
+                }
+                else {
+                    filterOptions.valueMax.$lte = parseFloat(partMax[1])
+                    console.log("There is a min price there")
+                    console.log(filterOptions.valueMax)
+                }
             }
 
             // Pagination
-            const result = await bookModel.find({})
+            const result = await bookModel.find(filterOptions)
+                .sort(sortOptions)
                 .skip((page - 1) * limit)
                 .limit(limit)
-                .sort(sortOptions)
-
 
             if (result.length > 0) {
                 const paginationResult = {
@@ -93,7 +125,7 @@ class bookController {
             return res.status(500).send(success("No book was found"));
 
         } catch (error) {
-            res.status(500).send(failure(error.message))
+            return res.status(500).send(failure(error.message))
         }
     }
 
