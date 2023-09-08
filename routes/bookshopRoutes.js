@@ -5,7 +5,7 @@ const { checkLogin, isAdmin } = require('../middleware/auth')
 const AuthController = require('../controller/authController')
 const readerController = require('../controller/readerController')
 const bookController = require("../controller/bookController")
-const transactionController = require("../controller/transactionController")
+const cartController = require("../controller/CartController")
 const authController = require('../controller/authController')
 const Auth = require('../model/auth')
 
@@ -18,9 +18,12 @@ routes.get("/get-all-books", bookController.getAll)
 routes.get("/get-book-by-id/:id", bookController.getOneById)
 routes.delete("/del-book-by-id/:id", checkLogin, isAdmin, bookController.deleteOneById)
 
-routes.post("/add-reader", checkLogin, readerValidation.create, readerController.create, readerController.add)
+routes.post("/add-reader", readerValidation.create, readerController.create, readerController.add)
 
-routes.post("/add-transaction", transactionController.add)
-routes.get("/get-transaction", transactionController.getAll)
+routes.post("/add-transaction", cartController.add)
+routes.patch("/delete-cart", cartController.delete)
+routes.post("/checkout", cartController.checkOut)
+
+routes.get("/get-transaction", cartController.getAll)
 
 module.exports = routes

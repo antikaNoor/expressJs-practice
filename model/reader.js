@@ -15,7 +15,8 @@ const readerSchema = new mongoose.Schema({
         unique: true
     },
     status: {
-        type: Boolean
+        type: Boolean,
+        default: false
     },
 
 }, { timestamps: true })
