@@ -16,7 +16,7 @@ class bookController {
                 next()
             }
         } catch (error) {
-            console.log("error has occured")
+            return res.status(500).send(failure("internal server error.", error))
         }
     }
 
@@ -40,104 +40,112 @@ class bookController {
             }
         } catch (error) {
             console.error("Error while entering book:", error);
-            return res.status(500).send(failure("Could not add the book"))
+            return res.status(500).send(failure("internal server error.", error))
         }
     }
 
     //get all data
     async getAll(req, res) {
         try {
-            let { page, limit, sort, min, max, pages, price, stock, title, author, genre } = req.query
+            let { page, limit, sortParam, sortOrder, pagesMin, pagesMax, priceMin, priceMax, stockMin, stockMax, search } = req.query
 
             let result = 0
             // Total number of records in the whole collection
             const totalRecords = await bookModel.countDocuments({})
 
-            // if (!page || !limit) {
-            //     page = 2
-            //     limit = totalRecords / page
-            // }
+            if (!page || !limit) {
+                page = 1
+                limit = totalRecords / page
+            }
+
             if (page < 1 || limit < 0) {
                 return res.status(500).send(failure("Page must be at least 1 and limit must be at least 0"))
             }
 
             // sorting
-            const sortOptions = {}
-            if (sort) {
-                console.log(sort)
-                const part = sort.split(":")
-                console.log(part[1])
-                const sortBy = part[0]
-                const sortOrder = part[1]
-
-                if (sortOrder === 'desc') {
-                    sortOptions[sortBy] = -1;
-                } else if (sortOrder === 'asc') {
-                    sortOptions[sortBy] = 1;
-                }
-                else {
-                    return res.status(500).send(failure("Please enter a valid order!"))
-                }
+            if (
+                (sortParam && !sortOrder) ||
+                (!sortParam && sortOrder) ||
+                (sortParam && sortParam !== "pages" && sortParam !== "price" && sortParam !== "stock") ||
+                (sortOrder && sortOrder !== "asc" && sortOrder !== "desc")
+            ) {
+                return res.status(400).send(failure("Invalid sort parameters provided."));
             }
 
             // Filtering
-            const filterOptions = {}
-            if (min !== undefined) {
+            const filter = {}
+            if (priceMin && priceMax) {
+                if (priceMin > priceMax) {
+                    return res.status(400).send(failure("Minimum price cannot be greater than maximum price."));
+                }
+                filter.price = {
+                    $gte: parseFloat(priceMin),
+                    $lte: parseFloat(priceMax)
+                }
 
-                const partMin = min.split(":")
-                filterOptions[partMin[0]] = { $gte: parseFloat(partMin[1]) }
+            }
+            if (priceMin && !priceMax) {
+                filter.price = { $gte: parseFloat(priceMin) }
+
+            }
+            if (!priceMin && priceMax) {
+                filter.price = { $lte: parseFloat(priceMax) }
+
+            }
+            if (pagesMin && pagesMax) {
+                if (pagesMin > pagesMax) {
+                    return res.status(400).send(failure("Minimum pages cannot be greater than maximum pages."));
+                }
+                filter.pages = {
+                    $gte: parseFloat(pagesMin),
+                    $lte: parseFloat(pagesMax)
+                }
+
+            }
+            if (pagesMin && !pagesMax) {
+                filter.pages = { $gte: parseFloat(pagesMin) }
+
+            }
+            if (!pagesMin && pagesMax) {
+                filter.pages = { $lte: parseFloat(pagesMax) }
+
+            }
+            if (stockMin && stockMax) {
+                if (stockMin > stockMax) {
+                    return res.status(400).send(failure("Minimum stock cannot be greater than maximum stock."));
+                }
+                filter.stock = {
+                    $gte: parseFloat(stockMin),
+                    $lte: parseFloat(stockMax)
+                }
+
+            }
+            if (stockMin && !stockMax) {
+                filter.stock = { $gte: parseFloat(stockMin) }
+
+            }
+            if (!stockMin && stockMax) {
+                filter.stock = { $lte: parseFloat(stockMax) }
+
             }
 
-            if (max !== undefined) {
-                const partMax = max.split(":")
-                if (filterOptions[partMax[0]] === undefined) {
-                    filterOptions[partMax[0]] = { $lte: parseFloat(partMax[1]) }
-                    console.log("min price has not been provided")
-                }
-                else {
-                    filterOptions[partMax[0]].$lte = parseFloat(partMax[1])
-                    console.log("There is a min price there")
-                }
+            // search
+            if (search) {
+                filter["$or"] = [
+                    { title: { $regex: search, $options: "i" } },
+                    { author: { $regex: search, $options: "i" } },
+                    { genre: { $regex: search, $options: "i" } }
+                ];
             }
-            console.log(filterOptions)
-
-            // If no filter is provided
-            // if (Object.keys(filterOptions).length === 0) {
-            //     return res.status(500).send(failure("Filter option is not provided!"))
-            // }
+            
             // Pagination
-            if (Object.keys(filterOptions).length === 0) {
-                console.log("Doing only searching")
-                // Search
-                const searchQuery = {
-                    title: {
-                        $regex: title,
-                        $options: 'i'
-                    },
-                    author: {
-                        $regex: author,
-                        $options: 'i'
-                    },
-                    genre: {
-                        $regex: genre,
-                        $options: 'i'
-                    },
-                    price: price,
-                    stock: stock,
-                    pages: pages
-                }
-                result = await bookModel.find(searchQuery)
-                    .sort(sortOptions)
-                    .skip((page - 1) * limit)
-                    .limit(limit)
-            }
-            else {
-                console.log("Doing only filtering")
-                result = await bookModel.find(filterOptions)
-                    .sort(sortOptions)
-                    .skip((page - 1) * limit)
-                    .limit(limit)
-            }
+            result = await bookModel.find(filter)
+                .sort({
+                    [sortParam]: sortOrder === "asc" ? 1 : -1,
+                })
+                .skip((page - 1) * limit)
+                .limit(limit)
+
 
             if (result.length > 0) {
                 const paginationResult = {
@@ -153,28 +161,28 @@ class bookController {
             return res.status(500).send(success("No book was found"));
 
         } catch (error) {
-            return res.status(500).send(failure(error.message))
+            return res.status(500).send(failure("internal server error.", error.message))
         }
     }
 
-    //get one data by id
-    async getOneById(req, res) {
-        try {
-            const { id } = req.params; // Retrieve the id from req.params
-            // console.log(id);
-            const result = await bookModel.findById({ _id: id })
-            console.log(result)
-            if (result) {
-                res.status(200).send(success("Successfully received the book", result))
-            } else {
-                res.status(200).send(failure("Can't find the book"))
-            }
+    // //get one data by id
+    // async getOneById(req, res) {
+    //     try {
+    //         const { id } = req.params; // Retrieve the id from req.params
+    //         // console.log(id);
+    //         const result = await bookModel.findById({ _id: id })
+    //         console.log(result)
+    //         if (result) {
+    //             res.status(200).send(success("Successfully received the book", result))
+    //         } else {
+    //             res.status(200).send(failure("Can't find the book"))
+    //         }
 
-        } catch (error) {
-            console.log("error found", error)
-            res.status(500).send(failure("Internal server error"))
-        }
-    }
+    //     } catch (error) {
+    //         console.log("error found", error)
+    //         res.status(500).send(failure("Internal server error"))
+    //     }
+    // }
 
     //delete data by id
     async deleteOneById(req, res) {
@@ -182,16 +190,15 @@ class bookController {
             const { id } = req.params; // Retrieve the id from req.params
             console.log(id);
             const result = await bookModel.findOneAndDelete({ _id: id })
-            // console.log(result)
             if (result) {
-                res.status(200).send(success("Successfully deleted the reader", result))
+                res.status(200).send(success("Successfully deleted the book", result))
             } else {
-                res.status(200).send(failure("Can't find the reader"))
+                res.status(200).send(failure("Can't find the book"))
             }
 
         } catch (error) {
             console.log("error found", error)
-            res.status(500).send(failure("Internal server error"))
+            res.status(500).send(failure("Internal server error", error))
         }
     }
 

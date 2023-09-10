@@ -27,6 +27,7 @@ class AuthController {
         }
     }
 
+    // refresh token
     async refresh(req, res) {
         try {
             const { reader_email } = req.body
@@ -44,13 +45,11 @@ class AuthController {
 
                     fs.writeFile("./.env", newValue, "utf-8", (err, data) => {
                         if (err) throw err
-                        // console.log(newValue)
                         console.log("Done!")
                     })
                 })
 
                 const newToken = jwt.sign({ reader_email }, process.env.JWT_SECRET, { expiresIn: '1h' })
-                // console.log(newSecretKey)
                 const response = {
                     reader_email: reader_email,
                     token: newToken
@@ -71,6 +70,7 @@ class AuthController {
         }
     }
 
+    // login
     async login(req, res) {
         try {
             const { reader_email, password } = req.body
@@ -111,7 +111,7 @@ class AuthController {
 
             delete responseAuth.password
             delete responseAuth._id
-            delete responseAuth.reader._id
+            // delete responseAuth.reader._id
             delete responseAuth.loginAttempt
             delete responseAuth.createdAt
             delete responseAuth.updatedAt
@@ -134,6 +134,7 @@ class AuthController {
         }
     }
 
+    // sign up
     async signup(req, res) {
         try {
             const validation = validationResult(req).array()

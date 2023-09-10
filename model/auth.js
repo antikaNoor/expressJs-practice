@@ -18,6 +18,10 @@ const authSchema = new mongoose.Schema({
     status: {
         type: Boolean,
     },
+    verified: {
+        type: Boolean,
+        default: false
+    },
     loginAttempt: {
         type: Number,
         default: 0

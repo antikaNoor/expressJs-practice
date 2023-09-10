@@ -172,7 +172,7 @@ class transactionController {
 
             await existingTransaction.save();
 
-            return res.status(200).send(success("Successfully deleted from cart"))
+            return res.status(200).send(success("Successfully deleted from cart", existingTransaction))
         } catch (error) {
             console.error("Error while deleting transaction:", error);
             return res.status(500).send(failure("Internal server error"))
