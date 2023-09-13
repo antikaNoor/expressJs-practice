@@ -179,6 +179,23 @@ class transactionController {
         }
     }
 
+    async getAll(req, res) {
+        try {
+            const result = await cartModel.aggregate({
+                $group: {
+                    _id: false,
+                    total: { $sum: "$total_spent" }
+                }
+            })
+            console.log(result)
+            return res.status(200).send(success("Successfully got all from cart", result))
+        }
+        catch (error) {
+            console.error("Error while getting data from cart:", error);
+            return res.status(500).send(failure("Internal server error"))
+        }
+    }
+
     // checkout
     async checkOut(req, res) {
         try {

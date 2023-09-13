@@ -24,6 +24,7 @@ routes.post("/add-reader", readerValidation.create, readerController.create, rea
 routes.post("/add-to-cart", isVerified, cartController.add)
 routes.patch("/delete-from-cart", isVerified, cartController.delete)
 routes.post("/checkout", isVerified, cartController.checkOut)
+routes.get("/get-all-cart", cartController.getAll)
 
 routes.get("/get-transaction", cartController.getAll)
 

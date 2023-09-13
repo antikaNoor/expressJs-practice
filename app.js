@@ -22,6 +22,17 @@ app.use((err, req, res, next) => {
 
 app.use("/shop", bookshopRouter)
 
+app.set("view engine", "ejs")
+app.get("/hello", (req, res) => {
+  return res.render("hello.ejs", {
+    name: "My bookstore",
+    routes: [
+      { url: "/shop/get-all-books", description: "Gets all the books", method: "GET" },
+      { url: "/shop/add-book", description: "Adds a new book", method: "POST" }
+    ]
+  })
+})
+
 // using route() method to get the invalid routes
 app.route('*')
   .get((req, res) => {
